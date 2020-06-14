@@ -11,7 +11,11 @@ pm2 start app.js -i 0
 pm2 kill
 
 pm2 delete <idname>
+
+
 ```
+# passport.js
+http://www.passportjs.org/
 
 # express-session 주의점
 https://www.npmjs.com/package/express-session
@@ -22,6 +26,3 @@ For a list of stores, see compatible session stores.
 
 > 메모리가 아닌 DB에 저장 권장
 ```
-
-# DB
-![user.png](./public/img/01.PNG)

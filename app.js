@@ -1,14 +1,22 @@
 const express = require('express');
 const app = express();
+require('dotenv').config();
+
 const path = require('path');
 const createError = require('http-errors');
 const session = require('express-session');
 
 /* 불러옴과 동시에 session 전달 */
 const mySQLSession = require('express-mysql-session')(session);
+const { pool } = require('./modules/mysql-conn');
 
 const {alert, imgExt} = require('./modules/utils.js');
-require('dotenv').config();
+
+app.use((req,res,next)=>{
+  console.log('hi~');
+  next();
+})
+
 
 
 /* Server */
@@ -28,7 +36,10 @@ app.use('/', express.static(path.join(__dirname, './public')));
 app.use('/storage', express.static(path.join(__dirname, './upload')));
 
 /* Session */
+const sessionStore = new mySQLSession({}, pool);
+
 app.use(session({
+  key : 'node-board',
   secret : process.env.PASS_SALT,
   resave : false, // 한번 save 한걸 다시 save 하겠다
   saveUninitialized : false,
@@ -36,15 +47,16 @@ app.use(session({
     httpOnly : true,
     secure : process.env.SERVICE === 'production' ? true : false, // https > 개발모드에서 false, production 할때는 true
   },
-  store : new mySQLSession({
-    host : process.env.DB_HOST,
-    port : process.env.DB_PORT,
-    user : process.env.DB_USER,
-    password : process.env.DB_PASS,
-    database : process.env.DB_DATABASE
+  // store : new mySQLSession({
+  //   host : process.env.DB_HOST,
+  //   port : process.env.DB_PORT,
+  //   user : process.env.DB_USER,
+  //   password : process.env.DB_PASS,
+  //   database : process.env.DB_DATABASE
+  // })
+    store : sessionStore
   })
-
-}))
+)
 
 /* Router */
 const boardRouter = require('./routes/board');
