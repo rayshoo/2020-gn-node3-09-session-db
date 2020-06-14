@@ -10,11 +10,7 @@ const session = require('express-session');
 const mySQLSession = require('express-mysql-session')(session);
 const { pool } = require('./modules/mysql-conn');
 
-const { alert } = require('./modules/utils.js');
-const passport = require('passport');
-
-/* index 가져옴 */
-const passportModule = require('./passport');
+const {alert, imgExt} = require('./modules/utils.js');
 
 app.use((req,res,next)=>{
   console.log('hi~');
@@ -60,11 +56,7 @@ app.use(session({
   // })
     store : sessionStore
   })
-);
-
-passportModule(passport);
-app.use(passport.initialize());
-app.use(passport.session());
+)
 
 /* Router */
 const boardRouter = require('./routes/board');

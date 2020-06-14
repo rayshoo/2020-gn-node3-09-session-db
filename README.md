@@ -12,10 +12,19 @@ pm2 kill
 
 pm2 delete <idname>
 
+logger - winston : 좀더 무겁지만 다양하게 나타내줌 morgan
+
+npm install passport passport-local passport-kakao
+
+passportjs - serialize, deserialize 기능으로 서버 메모리 최적화 기능 제공
 
 ```
 # passport.js
 http://www.passportjs.org/
+
+# npmtrends.com
+npmtrends.com
+ex) passport 검색
 
 # express-session 주의점
 https://www.npmjs.com/package/express-session
