@@ -4,7 +4,6 @@ const bcrypt = require('bcrypt');
 const { isUser, isGuest } = require('../modules/auth-conn');
 const {alert} = require('../modules/utils');
 const {pool} = require('../modules/mysql-conn');
-const passport = require('passport');
 const pugVals = {cssFile : 'user', jsFile : 'user'}
 
 router.get('/login', isGuest, (req,res,next)=>{
@@ -38,14 +37,41 @@ router.post('/save', isGuest, async(req,res,next)=>{
   }
 });
 
-router.post('/auth', async(req,res,next)=>{
-  const done = (err, user, msg) => {
-    console.log(user);
-    if(err) return next(err);
-    if(!user) return res.send(alert(msg, '/'));
-    else return res.send(alert('로그인 되었습니다.', '/'));
-  };
-  passport.authenticate('local', done)(req, res,next); // authenticate 실행하고 done 콜백 줬던거 받고, 그다음 미들웨어 이 곳
+router.post('/auth', isGuest, async(req,res,next)=>{
+  let{userid, userpw} = req.body;
+  let sql, connect, result;
+  try{
+    if(userid != "" && userpw !=""){
+      connect = await pool.getConnection();
+      sql = 'SELECT * FROM user WHERE userid=?';
+      result = await connect.query(sql, [userid]);
+      if(result[0][0]){
+        const compare = await bcrypt.compare(userpw + process.env.PASS_SALT, result[0][0].userpw);
+        connect.release();
+        if(compare){
+          req.session.user = {}
+          req.session.user.userid = result[0][0].id;
+          req.session.user.uresname = result[0][0].name;
+          req.session.user.email = result[0][0].email;
+          req.session.user.grant = result[0][0].grant;
+          req.app.locals.user = req.session.user;
+          res.send(alert('회원입니다. 반갑습니다.', '/board'));
+        }
+        else{
+          res.send(alert('아이디와 패스워드를 확인하세요', '/'));
+        }
+      }
+      else{
+        connect.release();
+        res.send(alert('아이디와 패스워드를 확인하세요', '/'));
+      }
+    }
+    else res.send(alert('아이디와 패스워드를 확인하세요', '/'));
+  }
+  catch(e){
+    connect.release();
+    next(e);
+  }
 });
 
 module.exports = router;

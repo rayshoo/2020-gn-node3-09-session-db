@@ -5,9 +5,10 @@ require('dotenv').config();
 const path = require('path');
 const createError = require('http-errors');
 const session = require('express-session');
+const cookieParser = require('cookie-parser');
 
 /* 불러옴과 동시에 session 전달 */
-const mySQLSession = require('express-mysql-session')(session);
+// const mySQLSession = require('express-mysql-session')(session);
 const { pool } = require('./modules/mysql-conn');
 
 const { alert } = require('./modules/utils.js');
@@ -40,25 +41,21 @@ app.use('/', express.static(path.join(__dirname, './public')));
 app.use('/storage', express.static(path.join(__dirname, './upload')));
 
 /* Session */
-const sessionStore = new mySQLSession({}, pool);
+// const sessionStore = new mySQLSession({}, pool);
 
+/* 앞으로 쿠키는 모두 암호화 시키겠다 */
+app.use(cookieParser(process.env.PASS_SALT))
+
+/* request 에 session 객체 생성 */
 app.use(session({
   key : 'node-board',
   secret : process.env.PASS_SALT,
   resave : false, // 한번 save 한걸 다시 save 하겠다
   saveUninitialized : false,
   cookie : {
-    httpOnly : true,
-    secure : process.env.SERVICE === 'production' ? true : false, // https > 개발모드에서 false, production 할때는 true
-  },
-  // store : new mySQLSession({
-  //   host : process.env.DB_HOST,
-  //   port : process.env.DB_PORT,
-  //   user : process.env.DB_USER,
-  //   password : process.env.DB_PASS,
-  //   database : process.env.DB_DATABASE
-  // })
-    store : sessionStore
+      httpOnly : true,
+      secure : process.env.SERVICE === 'production' ? true : false, // https > 개발모드에서 false, production 할때는 true
+    },
   })
 );
 
